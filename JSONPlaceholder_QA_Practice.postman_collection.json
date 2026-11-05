@@ -1,0 +1,547 @@
+{
+  "info": {
+    "_postman_id": "a4c71750-f61b-43eb-b0b7-83b4933bc633",
+    "name": "JSONPlaceholder QA Practice - Renee Machini",
+    "description": "Practice API test suite: positive, negative and edge cases with assertions. Target: https://jsonplaceholder.typicode.com (a free mock REST API).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "59587399",
+    "_collection_link": "https://go.postman.co/collection/59587399-a4c71750-f61b-43eb-b0b7-83b4933bc633?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Read (GET) - positive tests",
+      "item": [
+        {
+          "name": "GET all posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Response time is under 2000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });",
+                  "pm.test(\"Content-Type is JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Body is an array of 100 posts\", function () { const j = pm.response.json(); pm.expect(j).to.be.an(\"array\"); pm.expect(j.length).to.eql(100); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts"
+              ]
+            },
+            "description": "Happy path: list all posts."
+          },
+          "response": []
+        },
+        {
+          "name": "GET single post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Response time is under 2000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });",
+                  "pm.test(\"Content-Type is JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Post 1 has the expected fields\", function () { const j = pm.response.json(); pm.expect(j).to.have.all.keys(\"userId\", \"id\", \"title\", \"body\"); });",
+                  "pm.test(\"id is 1 and field types are correct\", function () { const j = pm.response.json(); pm.expect(j.id).to.eql(1); pm.expect(j.userId).to.be.a(\"number\"); pm.expect(j.title).to.be.a(\"string\").and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "1"
+              ]
+            },
+            "description": "Happy path: fetch one post and validate its schema."
+          },
+          "response": []
+        },
+        {
+          "name": "GET posts filtered by userId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Every returned post belongs to userId 1\", function () { const j = pm.response.json(); pm.expect(j).to.be.an(\"array\").that.is.not.empty; j.forEach(p => pm.expect(p.userId).to.eql(1)); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts?userId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Query-parameter filtering."
+          },
+          "response": []
+        },
+        {
+          "name": "GET comments for a post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Comments are linked to post 1\", function () { pm.response.json().forEach(c => pm.expect(c.postId).to.eql(1)); });",
+                  "pm.test(\"Every comment has a valid email format\", function () { const re = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/; pm.response.json().forEach(c => pm.expect(c.email).to.match(re)); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/1/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "1",
+                "comments"
+              ]
+            },
+            "description": "Nested resource plus data-format validation."
+          },
+          "response": []
+        },
+        {
+          "name": "GET single user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Response has an email field\", function () {\r\n    const json = pm.response.json();\r\n    pm.expect(json).to.have.property(\"email\");\r\n});\r\npm.test(\"Email contains an @ symbol\", function () {\r\n    pm.expect(pm.response.json().email).to.include(\"@\");\r\n});\r\npm.test(\"Address has a city\", function () {\r\n    pm.expect(pm.response.json().address.city).to.be.a(\"string\").and.not.empty;\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Create / Update / Delete",
+      "item": [
+        {
+          "name": "POST create post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Content-Type is JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Response echoes the data sent\", function () { const j = pm.response.json(); pm.expect(j.title).to.eql(\"QA practice post\"); pm.expect(j.userId).to.eql(1); });",
+                  "pm.test(\"A new id is returned\", function () { const j = pm.response.json(); pm.expect(j.id).to.be.a(\"number\"); pm.collectionVariables.set(\"newPostId\", j.id); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=UTF-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"QA practice post\",\n  \"body\": \"Created from a Postman test\",\n  \"userId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts"
+              ]
+            },
+            "description": "Create a resource and store its id in a collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT replace post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Updated title is returned\", function () { pm.expect(pm.response.json().title).to.eql(\"Updated title\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=UTF-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"title\": \"Updated title\",\n  \"body\": \"Updated body\",\n  \"userId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "1"
+              ]
+            },
+            "description": "Full update."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH partial update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Only the title changed in the response\", function () { const j = pm.response.json(); pm.expect(j.title).to.eql(\"Patched title\"); pm.expect(j.id).to.eql(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=UTF-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Patched title\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "1"
+              ]
+            },
+            "description": "Partial update."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Body is empty\", function () { pm.expect(pm.response.json()).to.be.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "1"
+              ]
+            },
+            "description": "Delete a resource."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Negative and edge cases",
+      "item": [
+        {
+          "name": "GET non-existent post returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"Body is empty for a missing resource\", function () { pm.expect(pm.response.json()).to.be.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "99999"
+              ]
+            },
+            "description": "Negative test: an id that does not exist."
+          },
+          "response": []
+        },
+        {
+          "name": "GET invalid id format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Server does not return a 5xx error\", function () { pm.expect(pm.response.code).to.be.below(500); });",
+                  "pm.test(\"Invalid id is rejected (4xx)\", function () { pm.expect(pm.response.code).to.be.within(400, 499); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts",
+                "abc"
+              ]
+            },
+            "description": "Negative test: text where a numeric id is expected."
+          },
+          "response": []
+        },
+        {
+          "name": "GET unknown endpoint returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/postz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "postz"
+              ]
+            },
+            "description": "Negative test: route that does not exist."
+          },
+          "response": []
+        },
+        {
+          "name": "POST with empty body (observation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log(\"Empty-body POST returned status \" + pm.response.code);",
+                  "pm.test(\"OBSERVATION: record what the API does with an empty body\", function () { pm.expect(pm.response.code).to.be.a(\"number\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=UTF-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts"
+              ]
+            },
+            "description": "JSONPlaceholder is a mock API and accepts almost any body. A real API should return 400 here. Use this pattern on a real system to test input validation."
+          },
+          "response": []
+        },
+        {
+          "name": "POST with wrong data types (observation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log(\"Wrong-type POST returned status \" + pm.response.code);",
+                  "pm.test(\"OBSERVATION: record behaviour for wrong data types\", function () { pm.expect(pm.response.code).to.be.a(\"number\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json; charset=UTF-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": 12345,\n  \"body\": null,\n  \"userId\": \"not-a-number\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "posts"
+              ]
+            },
+            "description": "Boundary and type check. A real API should reject this with 400."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://jsonplaceholder.typicode.com"
+    },
+    {
+      "key": "newPostId",
+      "value": ""
+    }
+  ]
+}
